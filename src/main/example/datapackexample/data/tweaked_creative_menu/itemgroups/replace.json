@@ -6,6 +6,10 @@
     "count": 1
   },
   "replace": true,
+  "insertion": {
+    "order": "before",
+    "target": "minecraft:combat"
+  },
   "entries": [
     {
       "id": "minecraft:potato",

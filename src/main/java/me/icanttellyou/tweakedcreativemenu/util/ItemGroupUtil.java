@@ -19,11 +19,45 @@ public class ItemGroupUtil {
 
     public static List<ItemGroup> addCustomItemGroups(List<ItemGroup> original) {
         List<ItemGroup> groups = new ArrayList<>(original);
-        for (DataItemGroup data : DataItemGroupManager.getCustomGroups().values()) {
-            DummyItemGroup group = data.getDummyItemGroup();
-            //noinspection SuspiciousMethodCalls
-            if (!groups.contains(group) && ((ItemGroup) group).hasStacks()) {
-                groups.add((ItemGroup) group);
+        for (var data : DataItemGroupManager.groupData.entrySet()) {
+            DataItemGroup dataGroup = data.getValue();
+            boolean vanilla = Registries.ITEM_GROUP.get(data.getKey()) != null;
+            ItemGroup group;
+
+            if (vanilla) {
+                group = Registries.ITEM_GROUP.get(data.getKey());
+            } else {
+                group = (ItemGroup) dataGroup.getDummyItemGroup();
+            }
+
+            if (dataGroup.insertion != null) {
+                ItemGroup target = groups.stream().filter(g ->
+                        getGroupIdentifier(g).equals(dataGroup.insertion.target())).findFirst().orElse(null);
+
+                if (target != null && group.hasStacks()) {
+                    int index = groups.indexOf(target);
+                    DataItemGroup.Insertion.Order order = dataGroup.insertion.order();
+
+                    if (vanilla) {
+                        if (groups.indexOf(group) < index) {
+                            index--;
+                        }
+
+                        groups.remove(group);
+                    }
+
+                    if (order == DataItemGroup.Insertion.Order.AFTER) {
+                        index += 1;
+                    }
+
+                    groups.add(index, group);
+                    continue;
+                }
+            }
+
+
+            if (!groups.contains(group) && group.hasStacks()) {
+                groups.add(group);
             }
         }
 

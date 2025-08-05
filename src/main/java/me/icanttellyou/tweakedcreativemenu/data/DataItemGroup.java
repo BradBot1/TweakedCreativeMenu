@@ -22,6 +22,7 @@ import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.StringIdentifiable;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -112,12 +113,43 @@ public class DataItemGroup {
         }
     }
 
+    public record Insertion(Order order, Identifier target) {
+        public static final Codec<Insertion> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(
+                        StringIdentifiable.createBasicCodec(Order::values).fieldOf("order").forGetter(Insertion::order),
+                        Identifier.CODEC.fieldOf("target").forGetter(Insertion::target)
+                ).apply(instance, Insertion::new));
+
+        public static final PacketCodec<RegistryByteBuf, Insertion> PACKET_CODEC = PacketCodec.tuple(
+                PacketCodecs.INTEGER.xmap(i -> Order.values()[i], Order::ordinal), Insertion::order,
+                Identifier.PACKET_CODEC, Insertion::target,
+                Insertion::new
+        );
+
+        public enum Order implements StringIdentifiable {
+            BEFORE("before"),
+            AFTER("after");
+
+            final String id;
+
+            Order(String id) {
+                this.id = id;
+            }
+
+            @Override
+            public String asString() {
+                return this.id;
+            }
+        }
+    }
+
     public static final Codec<DataItemGroup> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
                     Identifier.CODEC.fieldOf("id").forGetter(DataItemGroup::id),
                     Codec.STRING.optionalFieldOf("name").forGetter(dataItemGroup -> Optional.ofNullable(dataItemGroup.name())),
                     ItemStack.CODEC.optionalFieldOf("icon").forGetter(dataItemGroup -> Optional.ofNullable(dataItemGroup.icon)),
                     Codec.BOOL.optionalFieldOf("replace").forGetter(dataItemGroup -> Optional.of(dataItemGroup.replace)),
+                    Insertion.CODEC.optionalFieldOf("insertion").forGetter(dataItemGroup -> Optional.ofNullable(dataItemGroup.insertion)),
                     Entry.CODEC.listOf().optionalFieldOf("entries").forGetter(dataItemGroup -> Optional.ofNullable(dataItemGroup.entries))
             ).apply(instance, DataItemGroup::new));
 
@@ -126,6 +158,7 @@ public class DataItemGroup {
             PacketCodecs.STRING.collect(PacketCodecs::optional), dataItemGroup -> Optional.ofNullable(dataItemGroup.name()),
             ItemStack.PACKET_CODEC.collect(PacketCodecs::optional), dataItemGroup -> Optional.ofNullable(dataItemGroup.icon),
             PacketCodecs.BOOL.collect(PacketCodecs::optional), dataItemGroup -> Optional.of(dataItemGroup.replace),
+            Insertion.PACKET_CODEC.collect(PacketCodecs::optional), dataItemGroup -> Optional.ofNullable(dataItemGroup.insertion),
             DataItemGroup::new
     );
 
@@ -133,23 +166,25 @@ public class DataItemGroup {
     public final String name;
     public final ItemStack icon;
     public final boolean replace;
+    public final Insertion insertion;
     private final List<Entry> entries;
 
     public final List<ItemStack> items = new ArrayList<>();
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public DataItemGroup(Identifier id, Optional<String> name, Optional<ItemStack> icon, Optional<Boolean> replace, Optional<List<Entry>> entries) {
+    public DataItemGroup(Identifier id, Optional<String> name, Optional<ItemStack> icon, Optional<Boolean> replace, Optional<Insertion> insertion, Optional<List<Entry>> entries) {
         this.id = id;
         this.name = name.orElse(null);
         this.icon = icon.orElse(null);
         this.replace = replace.orElse(false);
+        this.insertion = insertion.orElse(null);
         this.entries = new ArrayList<>();
         entries.ifPresent(this.entries::addAll);
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public DataItemGroup(Identifier id, Optional<String> name, Optional<ItemStack> icon, Optional<Boolean> replace) {
-        this(id, name, icon, replace, Optional.empty());
+    public DataItemGroup(Identifier id, Optional<String> name, Optional<ItemStack> icon, Optional<Boolean> replace, Optional<Insertion> insertion) {
+        this(id, name, icon, replace, insertion, Optional.empty());
     }
 
     public void setupItems(MinecraftServer server) {
