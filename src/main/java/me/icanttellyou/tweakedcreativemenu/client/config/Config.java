@@ -24,20 +24,23 @@ public class Config {
     public static final Codec<Config> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.BOOL.fieldOf("tab_sounds").forGetter(c -> c.tabSounds),
             Codec.BOOL.fieldOf("tab_popout").forGetter(c -> c.tabPopout),
+            Codec.BOOL.fieldOf("display_id_advanced_tooltip").forGetter(c -> c.displayIdAdvanced),
             StringIdentifiable.createBasicCodec(TooltipMode::values).fieldOf("tooltip_mode").forGetter(c -> c.tooltipMode)
     ).apply(instance, Config::new));
 
     public boolean tabSounds;
     public boolean tabPopout;
+    public boolean displayIdAdvanced;
     public TooltipMode tooltipMode;
 
     public Config() {
-        this(true, true, TooltipMode.ATTACHED);
+        this(true, true, false, TooltipMode.ATTACHED);
     }
 
-    public Config(boolean tabSounds, boolean tabPopout, TooltipMode tooltipMode) {
+    public Config(boolean tabSounds, boolean tabPopout, boolean displayIdAdvanced, TooltipMode tooltipMode) {
         this.tabSounds = tabSounds;
         this.tabPopout = tabPopout;
+        this.displayIdAdvanced = displayIdAdvanced;
         this.tooltipMode = tooltipMode;
     }
 

@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+import me.icanttellyou.tweakedcreativemenu.util.ItemGroupUtil;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
@@ -19,6 +20,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,6 +29,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mixin(value = CreativeInventoryScreen.class, priority = 1002)
 public abstract class CreativeInventoryScreenMixin extends AbstractInventoryScreen<CreativeInventoryScreen.CreativeScreenHandler> {
@@ -82,8 +87,23 @@ public abstract class CreativeInventoryScreenMixin extends AbstractInventoryScre
 
 	@WrapOperation(method = "renderTabTooltipIfHovered", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;II)V"))
 	private void changeTooltipDrawing(DrawContext instance, TextRenderer textRenderer, Text text, int x, int y, Operation<Void> original, @Local ItemGroup group) {
+		int center = this.textRenderer.getWidth(text) / 2;
+
+		List<Text> lines = new ArrayList<>();
+		lines.add(text);
+
+		if (TweakedCreativeMenuClient.config.displayIdAdvanced && client.options.advancedItemTooltips) {
+			Text id = Text.literal(ItemGroupUtil.getGroupIdentifier(group).toString()).formatted(Formatting.DARK_GRAY);
+			lines.add(id);
+
+			int len = this.textRenderer.getWidth(id) / 2;
+
+			if (center < len)
+				center = len;
+		}
+
 		if (TweakedCreativeMenuClient.config.tooltipMode == Config.TooltipMode.FLOATING) {
-			original.call(instance, textRenderer, text, x, y);
+			instance.drawTooltip(textRenderer, lines, x, y);
 			return;
 		}
 
@@ -92,7 +112,7 @@ public abstract class CreativeInventoryScreenMixin extends AbstractInventoryScre
 		int offset = 0;
 		if (group == selectedTab)
 			offset = group.getRow() == ItemGroup.Row.TOP ? -1 : 3;
-		instance.drawTooltip(this.textRenderer, text, this.x + x2 - (this.textRenderer.getWidth(text) / 2), this.y + y2 + (group.getRow() == ItemGroup.Row.TOP ? 2 : 32 + 12) + offset);
+		instance.drawTooltip(this.textRenderer, lines, this.x + x2 - center, this.y + y2 + (group.getRow() == ItemGroup.Row.TOP ? 2 : 32 + 12) + offset);
 	}
 
 	@WrapOperation(method = "renderTabIcon", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V"))

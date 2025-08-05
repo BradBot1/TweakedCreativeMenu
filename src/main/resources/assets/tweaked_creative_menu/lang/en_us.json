@@ -4,6 +4,8 @@
   "tweaked_creative_menu.config.tabSounds.desc": "Toggles whether or not when clicking on tabs it produces a click sound.",
   "tweaked_creative_menu.config.tabPopout.name": "Tab Popout",
   "tweaked_creative_menu.config.tabPopout.desc": "Toggles whether or not tabs should pop out when hovering, along with the icon being popped out when selected.",
+  "tweaked_creative_menu.config.displayIdAdvanced.name": "Advanced Tooltips Tab ID",
+  "tweaked_creative_menu.config.displayIdAdvanced.desc": "Toggles whether or not the tab IDs should be shown when Advanced Tooltips are enabled.",
   "tweaked_creative_menu.config.tooltipMode.name": "Tooltip Position",
   "tweaked_creative_menu.config.tooltipMode.desc": "This option dictates how tooltips should be positioned when hovering tabs",
   "tweaked_creative_menu.config.tooltipMode.floating": "Follow Cursor",
