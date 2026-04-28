@@ -20,12 +20,21 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.lang.IllegalArgumentException;
 
 @Mixin(ItemGroup.class)
 public class ItemGroupMixin {
+
+    private static Set<ItemStack> ensureSafeGet(Object returnValue) {
+        if (returnValue instanceof Set<ItemStack>) return (Set<ItemStack>) returnValue;
+        if (returnValue instanceof Collection<ItemStack>) return returnValue.stream().collect(Collectors.toSet());
+        throw new IllegalArgumentException("Argument provided is not a collection!");
+    }
+    
     @Inject(method = "getDisplayStacks", at = @At(value = "TAIL"), cancellable = true)
     private void getDisplayStacks(CallbackInfoReturnable<Collection<ItemStack>> cir) {
-        Set<ItemStack> original = (Set<ItemStack>) cir.getReturnValue();
+        Set<ItemStack> original = ensureSafeGet(cir.getReturnValue());
         Collection<ItemStack> newList = tweaked_creative_menu$modifyStackLists(original, false);
 
         if (newList != original)
@@ -34,7 +43,7 @@ public class ItemGroupMixin {
 
     @Inject(method = "getSearchTabStacks", at = @At(value = "TAIL"), cancellable = true)
     private void getSearchTabStacks(CallbackInfoReturnable<Collection<ItemStack>> cir) {
-        Set<ItemStack> original = (Set<ItemStack>) cir.getReturnValue();
+        Set<ItemStack> original = ensureSafeGet(cir.getReturnValue());
         Collection<ItemStack> newList = tweaked_creative_menu$modifyStackLists(original, true);
 
         if (newList != original)
