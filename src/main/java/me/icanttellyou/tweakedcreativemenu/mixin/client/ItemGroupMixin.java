@@ -34,7 +34,7 @@ public class ItemGroupMixin {
     
     @Inject(method = "getDisplayStacks", at = @At(value = "TAIL"), cancellable = true)
     private void getDisplayStacks(CallbackInfoReturnable<Collection<ItemStack>> cir) {
-        Set<ItemStack> original = ensureSafeGet(cir.getReturnValue());
+        Set<ItemStack> original = ItemGroupMixin.ensureSafeGet(cir.getReturnValue());
         Collection<ItemStack> newList = tweaked_creative_menu$modifyStackLists(original, false);
 
         if (newList != original)
@@ -43,7 +43,7 @@ public class ItemGroupMixin {
 
     @Inject(method = "getSearchTabStacks", at = @At(value = "TAIL"), cancellable = true)
     private void getSearchTabStacks(CallbackInfoReturnable<Collection<ItemStack>> cir) {
-        Set<ItemStack> original = ensureSafeGet(cir.getReturnValue());
+        Set<ItemStack> original = ItemGroupMixin.ensureSafeGet(cir.getReturnValue());
         Collection<ItemStack> newList = tweaked_creative_menu$modifyStackLists(original, true);
 
         if (newList != original)
