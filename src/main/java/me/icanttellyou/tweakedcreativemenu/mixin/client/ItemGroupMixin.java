@@ -43,7 +43,7 @@ public class ItemGroupMixin {
 
     @Inject(method = "getSearchTabStacks", at = @At(value = "TAIL"), cancellable = true)
     private void getSearchTabStacks(CallbackInfoReturnable<Collection<ItemStack>> cir) {
-        Set<ItemStack> original = ItemGroupMixin.ensureSafeGet(cir.getReturnValue());
+        Set<ItemStack> original = tweakedCreativeMenu$ensureSafeGet(cir.getReturnValue());
         Collection<ItemStack> newList = tweaked_creative_menu$modifyStackLists(original, true);
 
         if (newList != original)
