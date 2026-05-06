@@ -26,7 +26,7 @@ import java.lang.IllegalArgumentException;
 @Mixin(ItemGroup.class)
 public class ItemGroupMixin {
     @Unique
-    private static Set<ItemStack> ensureSafeGet(Object returnValue) {
+    private static Set<ItemStack> tweakedCreativeMenu$ensureSafeGet(Object returnValue) {
         if (returnValue instanceof Set<ItemStack>) return (Set<ItemStack>) returnValue;
         if (returnValue instanceof Collection<ItemStack>) return returnValue.stream().collect(Collectors.toSet());
         throw new IllegalArgumentException("Argument provided is not a collection!");
